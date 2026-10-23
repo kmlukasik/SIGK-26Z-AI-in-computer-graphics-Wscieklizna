@@ -12,3 +12,8 @@
 <br>
 
 **Oddawanie projektów**: na teams (zdalnie) - godziny do dogadania (zgłosić min. jeden dzień wcześniej chęć oddania)
+
+**Wymogi dot. dokumentacji:**
+* Może być PDF albo Jupiter. Ważne, by tabelka z wynikami była albo osobno, albo w załączony pdf.
+* Szczegółowość eksperymentów: powinny być opisy eksperymentów w miarę rozsądne. Np. nie trzeba się rozpisywać jak został wczytany zbiór danych, ale trzeba powiedzieć jakie ma właściwości.
+* Powinna zawierać: Jaki zbiór danych, jak został podzielony i wykorzystany, jak wyglądał proces uczenia, jak wyglądały wyniki w trakcie uczenia i na końcu, osiągnięte rezultaty i wnioski
