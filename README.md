@@ -1,0 +1,1 @@
+# SIGK-26Z-AI-in-computer-graphics-Wscieklizna
