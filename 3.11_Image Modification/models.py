@@ -3,6 +3,7 @@
 # (if the low-resolution image is first enlarged to 256x256).
 import torch
 import torch.nn as nn
+import math
 
 
 def double_conv(in_ch, out_ch):
@@ -44,4 +45,53 @@ class UNet(nn.Module):
         d1 = self.dec1(torch.cat([self.up1(d2), e1], dim=1))
 
         # the network learns only the correction: result = input + correction
-        return x + self.out(d1)
+        out = x + self.out(d1)
+        return torch.clamp(out, 0.0, 1.0)
+
+
+# EDSR
+class EDSRBlock(nn.Module):
+    def __init__(self, channels=256, res_scale=0.1):
+        super().__init__()
+        self.res_scale = res_scale
+        self.body = nn.Sequential(
+            nn.Conv2d(channels, channels, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(channels, channels, kernel_size=3, padding=1),
+        )
+
+    def forward(self, x):
+        return x + self.body(x) * self.res_scale
+
+
+class EDSR(nn.Module):
+    def __init__(self, upscale_factor=4, num_channels=256, num_res_blocks=32, res_scale=0.1):
+        super().__init__()
+        self.upscale_factor = upscale_factor
+
+        self.head = nn.Conv2d(3, num_channels, kernel_size=3, padding=1)
+
+        # Residual blocks + closing conv
+        self.body_blocks = nn.Sequential(
+            *[EDSRBlock(channels=num_channels, res_scale=res_scale) for _ in range(num_res_blocks)]
+        )
+        self.body_end = nn.Conv2d(num_channels, num_channels, kernel_size=3, padding=1)
+
+        num_upsamples = int(math.log2(upscale_factor))
+        upsample_layers = []
+        for _ in range(num_upsamples):
+            upsample_layers.extend([
+                nn.Conv2d(num_channels, num_channels * 4, kernel_size=3, padding=1),
+                nn.PixelShuffle(2),
+            ])
+        self.upsample = nn.Sequential(*upsample_layers)
+
+        # Final reconstruction to RGB
+        self.tail = nn.Conv2d(num_channels, 3, kernel_size=3, padding=1)
+
+    def forward(self, x):
+        x_feat = self.head(x)
+        res = self.body_end(self.body_blocks(x_feat))
+        res = res + x_feat 
+        out = self.tail(self.upsample(res))
+        return torch.clamp(out, 0.0, 1.0)

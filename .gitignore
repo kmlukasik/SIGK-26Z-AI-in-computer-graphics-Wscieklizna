@@ -1,0 +1,15 @@
+
+.venv/
+env/
+venv/
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+3.11_Image Modification/data/
+
+3.11_Image Modification/results_upscaling/
+*.pt
+*.pth

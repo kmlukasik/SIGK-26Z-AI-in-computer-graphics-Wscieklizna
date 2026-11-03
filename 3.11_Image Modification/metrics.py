@@ -10,9 +10,10 @@ def sne(pred, target):
     return ((pred - target) ** 2).sum(dim=(1, 2, 3))
 
 
-def psnr(pred, target):
+def psnr(pred, target, eps=1e-10):
     # mean squared error of one image; the highest possible pixel value is 1.0 (higher is better)
     mse = ((pred - target) ** 2).mean(dim=(1, 2, 3))
+    mse = torch.clamp(mse, min=eps)
     return 10 * torch.log10(1.0 / mse)
 
 
