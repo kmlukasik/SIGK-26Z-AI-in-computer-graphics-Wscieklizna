@@ -163,17 +163,26 @@ def train(
         # Validation
         model.eval()
         values = []
+        total_val_loss = 0.0
 
         with torch.no_grad():
             for dark, gt in val_dl:
                 dark = dark.to(device)
                 gt = gt.to(device)
 
-                pred = model(dark).clamp(0, 1)
+                pred = model(dark)
 
-                batch_psnr = psnr(pred, gt)
+                v_loss = loss_fn(pred, gt)
+                if lpips_model is not None:
+                    pred_lpips = pred.clamp(0, 1) * 2 - 1
+                    gt_lpips = gt * 2 - 1
+                    v_loss = v_loss + lpips_weight * lpips_model(pred_lpips, gt_lpips).mean()
+                total_val_loss += v_loss.item()
+
+                batch_psnr = psnr(pred.clamp(0, 1), gt)
                 values += batch_psnr.cpu().tolist()
 
+        val_loss = total_val_loss / len(val_dl)
         val_psnr = float(np.mean(values))
 
         current_lr = optimizer.param_groups[0]['lr']
@@ -181,6 +190,7 @@ def train(
         epoch_info = {
             'epoch': epoch,
             'loss': avg_loss,
+            'val_loss': val_loss,
             'val_psnr': val_psnr,
             'lr': current_lr
         }

@@ -52,7 +52,7 @@ def download_raise_nef(csv_path, output_dir, limit=None):
 
 def get_ground_truth(raw):
     # properly exposed sRGB image; half_size=True makes the image 2 times smaller (faster)
-    return raw.postprocess(use_camera_wb=True, half_size=True)
+    return raw.postprocess(use_camera_wb=True, half_size=True, no_auto_bright=True)
 
 
 def get_linear_image(raw):
